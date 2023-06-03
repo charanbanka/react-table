@@ -10,6 +10,7 @@ const EditablePrice = (info) => {
   const [value, setValue] = useState(info.renderValue());
   const onChange = (e) => {
     setValue(e.target.value);
+    info.table.options.updateMyData(info.row.index, info.row.id, e.target.value);
   };
   // We'll only update the external data when the input is blurred
   const onBlur = () => {
@@ -20,7 +21,7 @@ const EditablePrice = (info) => {
   useEffect(() => {
     setValue(info.renderValue());
   }, [info.renderValue()]);
-  return <input type="number" value={value} onChange={onChange} onBlur={onBlur} />;
+  return <input type="number" value={value} onChange={onChange} />;
 };
 
 export const columns = [

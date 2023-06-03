@@ -12,12 +12,14 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import axios from "axios";
+import Notification from "./Notification";
 
 export default function ReactTable(props) {
   const [data, setData] = useState([]);
   // const [columns, setColumns] = useState([])
   const [editData, setEditData] = useState(null);
   const [sorting, setSorting] = useState([]);
+  const [notify, setNotify] = useState({message: "", show: false, class: ""})
   let columns = props.columns;
 
   const getData = () => {
@@ -28,11 +30,16 @@ export default function ReactTable(props) {
     });
   };
 
-  const saveData = async (is_update, data) => {
+  const saveData = async (is_update, data, message) => {
     axios
       .post(`http://localhost:5000/table-data`, { is_update, data })
       .then((res) => {
         // console.log(res.data);
+        setNotify({
+          message,
+          show: true,
+          class: "text-success"
+        })
       });
   };
 
@@ -56,13 +63,13 @@ export default function ReactTable(props) {
     );
   };
   const onSave = (table) => {
-    saveData(true, editData);
+    saveData(true, editData, "Successfully saved!");
     setData(editData);
   };
 
   const onReset = () => {
     setData(props.data);
-    saveData(false, props.data);
+    saveData(false, props.data, "Reset success!");
   };
 
   const table = useReactTable({
@@ -77,13 +84,15 @@ export default function ReactTable(props) {
       // pagination: { pageIndex: 1, pageSize: 5 },
     },
     initialState: {
-      pagination: { pageIndex: 0, pageSize: 5 },
+      pagination: { pageIndex: 0, pageSize: 4 },
     },
     updateMyData,
   });
-
+  console.log("table", table);
+  const setDefaultNotfy=()=>{setNotify({message: "", show: false, class: ""})}
   return (
-    <div className="m-5">
+    <div className="m-2 ml-5 mr-5">
+      {notify?.show && <Notification {...notify} setNotify={setDefaultNotfy} /> }
       <div className="rounded-md border">
         <table id="react-table">
           <thead>
@@ -128,40 +137,50 @@ export default function ReactTable(props) {
           </tbody>
         </table>
       </div>
-      <div className="flex items-center justify-end  py-2">
-        <button
-          className="btn btn-danger mr-3"
-          size="sm"
-          onClick={() => onReset()}
-        >
-          reset
-        </button>
-        <button
-          className="btn btn-success"
-          size="sm"
-          onClick={() => onSave(table)}
-        >
-          save
-        </button>
+      <div className="d-flex justify-content-between py-2">
+        <div></div>
+        <div className="d-flex items-center justify-end  py-2">
+          <button
+            className="btn btn-danger mr-3"
+            size="sm"
+            onClick={() => onReset()}
+          >
+            reset
+          </button>
+          <button
+            className="btn btn-success"
+            size="sm"
+            onClick={() => onSave(table)}
+          >
+            save
+          </button>
+        </div>
+        <div className="d-flex align-items-center py-2">
+          <div>
+            Page {table.options.state.pagination.pageIndex + 1} of{" "}
+            {table.getPageCount()}
+          </div>
+          <div className="ml-2">
+            <button
+              className="btn mr-3"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              Previous
+            </button>
+            <button
+              className="btn "
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
-      <div className="flex py-2">
-        <button
-          className="btn mr-3"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </button>
-        <button
-          className="btn "
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </button>
-      </div>
+      
     </div>
   );
 }
